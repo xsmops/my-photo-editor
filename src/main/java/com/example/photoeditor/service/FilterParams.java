@@ -1,13 +1,16 @@
 package com.example.photoeditor.service;
 
-import com.example.photoeditor.service.AdjustColor;
-
-
+/**
+ * Stores all filter parameters used by the image processing pipeline.
+ *
+ * <p>For now it contains only basic color adjustments. More filter groups can
+ * be added later without changing the method signatures in the processor.</p>
+ *
+ * @param adjustColor brightness, contrast, and saturation parameters
+ */
 public record FilterParams(
-        AdjustColor adjustColor // records to processing Brightness, Contrast and Saturation
-        // another params-group to be implemented
+        AdjustColor adjustColor
 ) {
 
 
 }
-

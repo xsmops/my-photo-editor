@@ -3,12 +3,27 @@ package com.example.photoeditor.service;
 import com.example.photoeditor.Model.color.HsvColor;
 import com.example.photoeditor.Model.color.NormalizedRgbColor;
 import com.example.photoeditor.Model.color.RgbColor;
-import javafx.scene.image.PixelReader;
 
+/**
+ * Converts colors between RGB and HSV color spaces.
+ *
+ * <p>This class does not store color values. It only contains conversion
+ * logic. Color data is stored in {@link RgbColor}, {@link NormalizedRgbColor},
+ * and {@link HsvColor}.</p>
+ */
 public class ColorConverter {
-    public ColorConverter(double i1, double i2, double i3){}
+    public ColorConverter() {}
 
-    private HsvColor rgbToHsv(RgbColor rgbColor) {
+    /**
+     * Converts an RGB color to HSV.
+     *
+     * <p>The input RGB color is clamped to the valid 0..255 range before
+     * conversion. The returned HSV color is also clamped to its valid range.</p>
+     *
+     * @param rgbColor source RGB color
+     * @return converted HSV color
+     */
+    public HsvColor rgbToHsv(RgbColor rgbColor) {
         double h;
         double s;
         double v;
@@ -24,7 +39,7 @@ public class ColorConverter {
         double max = Math.max(r, Math.max(g, b));
         double delta = max - min;
 
-        // Calculate Hue h:
+        // Hue depends on which RGB channel has the highest value.
         if (delta == 0) {
             h = 0;
         } else if (max == r) {
@@ -35,42 +50,48 @@ public class ColorConverter {
             h = 60 * (((r - g) / delta) + 4);
         }
 
-        // Calculate Saturation s:
+        // Saturation is zero for black because there is no color intensity.
         if (max == 0) {
             s = 0;
         } else {
             s = delta / max;
         }
 
-        // Calculate Value v:
+        // Value is the strongest normalized RGB channel.
         v = max;
 
-        // Compile and return HSV Color:
         return new HsvColor(h, s, v).clamp();
     }
     
-    private RgbColor hsvToRgb(HsvColor hsvColor) {
-        // Initialize RGB channels
-        double r = 0; // red
-        double g = 0; // green
-        double b = 0; // blue
+    /**
+     * Converts an HSV color to RGB.
+     *
+     * <p>The input HSV color is clamped before conversion. The returned RGB
+     * values are in the 0..255 range, but callers may still clamp the result
+     * before packing it into an ARGB pixel.</p>
+     *
+     * @param hsvColor source HSV color
+     * @return converted RGB color
+     */
+    public RgbColor hsvToRgb(HsvColor hsvColor) {
+        double r = 0;
+        double g = 0;
+        double b = 0;
 
-        // Color clamp and split
         HsvColor color = hsvColor.clamp();
         double h = color.hue();
         double s = color.saturation();
         double v = color.value();
         
-        // Calculate Chroma
+        // Chroma is the color intensity without the final brightness offset.
         double c = v * s;
 
-        // Calculate Hue sector
+        // HSV hue is split into six 60-degree RGB sectors.
         int hSector = (int) (h / 60);
 
-        // Calculate intermediate value
-        double x = c * (1 - Math.abs((hSector % 2) - 1));
+        // Intermediate channel used between two neighboring sectors.
+        double x = c * (1 - Math.abs((h / 60) % 2 - 1));
 
-        // Determine RGB values based on Sector hSector
         switch (hSector % 6) {
             case 0 -> { r = c; g = x; b = 0; }
             case 1 -> { r = x; g = c; b = 0; }
@@ -81,15 +102,13 @@ public class ColorConverter {
             default -> {}
         }
 
-        // Add matching component
+        // Add the brightness offset back to all channels.
         double m = v - c;
-
-        // Match the channel
         r = r + m;
         g = g + m;
         b = b + m;
 
-        // Get r, b, b in 0-255 range
+        // Convert normalized channels back to display RGB values.
         r = r * 255;
         g = g * 255;
         b = b * 255;
@@ -98,8 +117,4 @@ public class ColorConverter {
         return new RgbColor(r, g, b);
     }
 
-    //TODO
-    // hsvEditing()
-    // toRgb()
-    
 }
