@@ -44,8 +44,8 @@ public record HsvColor (
         double minSV = 0.0;
         double maxSV = 1.0;
 
-        double newSaturation = Math.max(minSV, Math.min(maxSV, saturation()));
-        double newValue = Math.max(minSV, Math.min(maxSV, value()));
+        double newSaturation = Math.clamp(saturation(), minSV, maxSV);
+        double newValue = Math.clamp(value(), minSV, maxSV);
 
 
         double maxHue = 360.0;

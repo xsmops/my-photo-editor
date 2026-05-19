@@ -6,7 +6,7 @@ package com.example.photoeditor.service;
  * <p>For now it contains only basic color adjustments. More filter groups can
  * be added later without changing the method signatures in the processor.</p>
  *
- * @param adjustColor brightness, contrast, and saturation parameters
+ * @param adjustColor brightness, contrast, saturation, and hue parameters
  */
 public record FilterParams(
         AdjustColor adjustColor

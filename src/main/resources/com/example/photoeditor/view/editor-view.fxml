@@ -12,7 +12,7 @@
     <center>
         <ImageView fx:id="imageView"
                    preserveRatio="true"
-                   fitWidth="600"/>
+                   fitWidth="800"/>
     </center>
 
     <right>
@@ -29,8 +29,8 @@
 
             <Label text="Contrast"/>
             <Slider fx:id="contrastSlider"
-                    min="-0.5"
-                    max="0.5"
+                    min="-1"
+                    max="1"
                     value="0"
                     blockIncrement="0.01"
                     showTickMarks="true"
@@ -40,7 +40,14 @@
             <Slider fx:id="saturationSlider"
                     min="-1"
                     max="1"
-                    value="0"
+                    blockIncrement="0.01"
+                    showTickMarks="true"
+                    majorTickUnit="0.5"/>
+
+            <Label text="Hue"/>
+            <Slider fx:id="hueSlider"
+                    min="-1"
+                    max="1"
                     blockIncrement="0.01"
                     showTickMarks="true"
                     majorTickUnit="0.5"/>

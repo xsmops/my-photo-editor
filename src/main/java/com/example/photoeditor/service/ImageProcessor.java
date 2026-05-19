@@ -188,9 +188,7 @@ public class ImageProcessor {
      * precomputed lookup tables.
      */
     private HsvColor applyAdjustments(HsvColor hsv, AdjustmentLut lut) {
-        double h = hsv.hue();
-
-        double newH = h; //TODO implement hue changing
+        double newH = lut.applyHue(hsv.hue());
         double newS = lut.applySaturation(hsv.saturation());
         double newV = lut.applyValue(hsv.value());
 

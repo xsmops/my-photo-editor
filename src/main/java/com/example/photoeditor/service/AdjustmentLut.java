@@ -1,14 +1,17 @@
 package com.example.photoeditor.service;
 
 /**
- * Precomputes adjustment values for saturation and brightness/value changes.
+ * Precomputes adjustment values for hue, saturation, and brightness/value
+ * changes.
  *
  * <p>LUT means "lookup table". Instead of recalculating the same adjustment
- * formulas for every pixel, this class calculates all possible normalized
- * input values once for the current slider parameters.</p>
+ * formulas for every pixel, this class calculates all possible input values
+ * once for the current slider parameters.</p>
  *
- * <p>The tables use 256 entries because HSV saturation and value are normalized
- * to 0..1, but image channels are commonly represented as 0..255 steps.</p>
+ * <p>The saturation and value tables use 256 entries because HSV saturation
+ * and value are normalized to 0..1, but image channels are commonly represented
+ * as 0..255 steps. The hue table uses 360 entries because HSV hue is measured
+ * in degrees.</p>
  *
  * <p>Instances are built once per image processing run and then shared between
  * worker threads. The lookup arrays are filled during construction and only
@@ -17,15 +20,17 @@ package com.example.photoeditor.service;
 public class AdjustmentLut {
     private final double[] value;
     private final double[] saturation;
+    private final double[] hue;
 
     /**
      * Builds lookup tables for the given adjustment parameters.
      *
-     * @param params brightness, contrast, and saturation values
+     * @param params brightness, contrast, saturation, and hue values
      */
     public AdjustmentLut(AdjustColor params) {
         this.saturation = buildSaturationLut(params);
         this.value = buildValueLut(params);
+        this.hue = buildHueLut(params);
     }
 
     /**
@@ -51,6 +56,21 @@ public class AdjustmentLut {
     }
 
     /**
+     * Applies the precomputed hue adjustment.
+     *
+     * <p>The input hue is rounded to the nearest integer degree and wrapped
+     * with the modulo operator so an input of 360 maps back to index 0.</p>
+     *
+     * @param h original HSV hue in degrees (0..360)
+     * @return adjusted hue in degrees; may fall outside 0..360 and will be
+     *         wrapped by {@link com.example.photoeditor.Model.color.HsvColor#clamp()}
+     */
+    public double applyHue(double h) {
+        int idx = ((int) Math.round(h)) % 360;
+        return hue[idx];
+    }
+
+    /**
      * Builds a table that maps every possible normalized saturation step to
      * its adjusted value.
      */
@@ -63,6 +83,25 @@ public class AdjustmentLut {
             double newSaturation = old * (1 + params.saturation());
 
             lut[i] = Math.clamp(newSaturation, 0.0, 1.0);
+        }
+
+        return lut;
+    }
+
+    /**
+     * Builds a table that maps every integer hue degree to its shifted value.
+     *
+     * <p>The slider value is interpreted as a rotation of up to ±180 degrees
+     * around the HSV color wheel. The shift is added without wrap-around
+     * because {@link com.example.photoeditor.Model.color.HsvColor#clamp()}
+     * already wraps hue back into the 0..360 range after the pixel is built.</p>
+     */
+    private double[] buildHueLut(AdjustColor params) {
+        double[] lut = new double[360];
+        double shift = params.hue() * 180;
+
+        for (int i = 0; i < 360; i++) {
+            lut[i] = i + shift;
         }
 
         return lut;
